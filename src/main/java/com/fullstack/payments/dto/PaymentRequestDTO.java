@@ -10,21 +10,24 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class PaymentRequest {
+public class PaymentRequestDTO {
+
+    @NotNull(message = "El ID del pedido es obligatorio")
+    private UUID orderId;
 
     @NotNull(message = "El ID del usuario es obligatorio")
     private UUID userId;
-
-    @NotNull(message = "El ID del producto es obligatorio")
-    private UUID productId;
-
-    @NotNull(message = "La cantidad es obligatoria")
-    @Positive(message = "La cantidad debe ser mayor a 0")
-    private Integer quantity;
 
     @NotNull(message = "El total es obligatorio")
     @Positive(message = "El total debe ser mayor a 0")
     private BigDecimal total;
 
-    private boolean approved;
+    /*
+     * Para simular pago:
+     * true  -> APPROVED
+     * false -> REJECTED
+     *
+     * En una integración real, esto vendría desde Webpay, MercadoPago, etc.
+     */
+    private boolean approved = true;
 }

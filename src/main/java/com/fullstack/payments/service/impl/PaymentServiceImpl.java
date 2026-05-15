@@ -1,9 +1,8 @@
 package com.fullstack.payments.service.impl;
 
-import com.fullstack.payments.dto.PaymentRequest;
+import com.fullstack.payments.dto.PaymentRequestDTO;
 import com.fullstack.payments.model.Payment;
 import com.fullstack.payments.model.PaymentStatus;
-import com.fullstack.payments.publisher.PaymentEventPublisher;
 import com.fullstack.payments.repository.PaymentRepository;
 import com.fullstack.payments.service.PaymentService;
 import org.springframework.http.HttpStatus;
@@ -17,32 +16,26 @@ import java.util.UUID;
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
-    private final PaymentEventPublisher paymentEventPublisher;
 
-    public PaymentServiceImpl(
-            PaymentRepository paymentRepository,
-            PaymentEventPublisher paymentEventPublisher
-    ) {
+    public PaymentServiceImpl(PaymentRepository paymentRepository) {
         this.paymentRepository = paymentRepository;
-        this.paymentEventPublisher = paymentEventPublisher;
     }
 
     @Override
-    public Payment createPayment(PaymentRequest request) {
+    public Payment processPayment(PaymentRequestDTO request) {
         Payment payment = Payment.builder()
+                .orderId(request.getOrderId())
                 .userId(request.getUserId())
-                .productId(request.getProductId())
-                .quantity(request.getQuantity())
                 .total(request.getTotal())
-                .status(request.isApproved() ? PaymentStatus.APPROVED : PaymentStatus.RECHAZED)
+                .status(request.isApproved() ? PaymentStatus.APPROVED : PaymentStatus.REJECTED)
                 .build();
 
         Payment savedPayment = paymentRepository.save(payment);
 
         if (savedPayment.getStatus() == PaymentStatus.APPROVED) {
-            paymentEventPublisher.publishPaymentApproved(savedPayment);
+            System.out.println("PAYMENTS: Pago aprobado para pedido " + savedPayment.getOrderId());
         } else {
-            System.out.println("PAYMENTS: Pago rechazado. No se crea pedido.");
+            System.out.println("PAYMENTS: Pago rechazado para pedido " + savedPayment.getOrderId());
         }
 
         return savedPayment;
@@ -54,11 +47,23 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Payment getPaymentById(UUID id) {
-        return paymentRepository.findById(id)
+    public Payment getPaymentById(UUID paymentId) {
+        return paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Pago no encontrado con ID: " + id
+                        "Pago no encontrado con ID: " + paymentId
                 ));
+    }
+
+    @Override
+    public List<Payment> getPaymentsByOrderId(UUID orderId) {
+        return paymentRepository.findByOrderId(orderId);
+    }
+
+    @Override
+    public Payment markRefundPending(UUID paymentId) {
+        Payment payment = getPaymentById(paymentId);
+        payment.setStatus(PaymentStatus.REFUND_PENDING);
+        return paymentRepository.save(payment);
     }
 }

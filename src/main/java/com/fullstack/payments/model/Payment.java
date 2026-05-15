@@ -24,17 +24,12 @@ public class Payment {
     private UUID id;
 
     @NotNull
+    @Column(name = "order_id", nullable = false)
+    private UUID orderId;
+
+    @NotNull
     @Column(name = "user_id", nullable = false)
     private UUID userId;
-
-    @NotNull
-    @Column(name = "product_id", nullable = false)
-    private UUID productId;
-
-    @NotNull
-    @Positive
-    @Column(nullable = false)
-    private Integer quantity;
 
     @NotNull
     @Positive
@@ -48,8 +43,20 @@ public class Payment {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
+
+        if (this.status == null) {
+            this.status = PaymentStatus.PENDING;
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }

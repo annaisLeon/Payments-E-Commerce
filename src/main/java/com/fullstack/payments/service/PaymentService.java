@@ -1,6 +1,6 @@
 package com.fullstack.payments.service;
 
-import com.fullstack.payments.dto.PaymentRequest;
+import com.fullstack.payments.dto.PaymentRequestDTO;
 import com.fullstack.payments.model.Payment;
 
 import java.util.List;
@@ -8,9 +8,13 @@ import java.util.UUID;
 
 public interface PaymentService {
 
-    Payment createPayment(PaymentRequest request);
+    Payment processPayment(PaymentRequestDTO request);
 
     List<Payment> getAllPayments();
 
-    Payment getPaymentById(UUID id);
+    Payment getPaymentById(UUID paymentId);
+
+    List<Payment> getPaymentsByOrderId(UUID orderId);
+
+    Payment markRefundPending(UUID paymentId);
 }

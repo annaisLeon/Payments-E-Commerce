@@ -1,6 +1,8 @@
 package com.fullstack.payments.model;
 
 public enum PaymentStatus {
+    PENDING,
     APPROVED,
-    RECHAZED
+    REJECTED,
+    REFUND_PENDING
 }
